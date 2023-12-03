@@ -1,1 +1,33 @@
+local module = {}
+module.__index = module
 
+function module.new(default)
+    local self = setmetatable({}, module)
+    self.default = default or 3
+    self.let = {}
+    return self
+end
+
+function module:Interval(msg, cooldown)
+    cooldown = cooldown or self.default
+
+    return function(...)
+        local ct = tick() -- current time
+        local let = self.let[msg] or 0
+        local last_let = ct - let
+
+        if last_let < cooldown then
+            local curve_wait = cooldown - last_let
+            warn(msg)
+            task.wait(curve_wait)
+        end
+
+        local result = {...}
+        result[1] = msg
+        self.let[msg] = tick()
+
+        return unpack(result)
+    end
+end
+
+return module
